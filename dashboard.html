@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Earo</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <h1>🌐 Earo</h1>
+            </div>
+            <nav class="nav">
+                <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                <a href="checkin.html" class="nav-link">Check-in</a>
+                <a href="scratch.html" class="nav-link">Scratch</a>
+                <a href="treasure.html" class="nav-link">Treasure</a>
+                <a href="tasks.html" class="nav-link">Tasks</a>
+                <a href="withdraw.html" class="nav-link">Withdraw</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="welcome-section">
+                <h2>Welcome, <span id="userName">User</span>! 👋</h2>
+                <p>Ready to earn some money today?</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Wallet Card -->
+                <div class="dashboard-card wallet-card">
+                    <h3>💰 Your Wallet</h3>
+                    <div class="wallet-amount" id="walletAmount">₹0</div>
+                    <div class="wallet-actions">
+                        <button class="btn btn-primary" onclick="location.href='withdraw.html'">
+                            Withdraw Money
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Plan Card -->
+                <div class="dashboard-card plan-card">
+                    <h3>🎯 Current Plan</h3>
+                    <div class="plan-info">
+                        <div class="plan-name" id="planName">Free Plan</div>
+                        <div class="plan-multiplier" id="planMultiplier">Multiplier: 0.2×</div>
+                        <div class="plan-expiry" id="planExpiry">Lifetime</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="location.href='subscriptions.html'">
+                        Upgrade Plan
+                    </button>
+                </div>
+
+                <!-- Streak Card -->
+                <div class="dashboard-card streak-card">
+                    <h3>🔥 Daily Streak</h3>
+                    <div class="streak-info">
+                        <div class="streak-count" id="streakCount">0 Days</div>
+                        <div class="streak-note">Check-in daily to maintain streak!</div>
+                    </div>
+                    <button class="btn btn-success" onclick="location.href='checkin.html'">
+                        Check-in Today
+                    </button>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="dashboard-card actions-card">
+                    <h3>🚀 Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button class="btn action-btn" onclick="location.href='scratch.html'">
+                            🎴 Scratch Card
+                        </button>
+                        <button class="btn action-btn" onclick="location.href='treasure.html'">
+                            🎁 Open Treasure
+                        </button>
+                        <button class="btn action-btn" onclick="location.href='tasks.html'">
+                            ✅ Complete Tasks
+                        </button>
+                        <button class="btn action-btn" onclick="location.href='referrals.html'">
+                            👥 Refer Friends
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Earnings -->
+                <div class="dashboard-card earnings-card">
+                    <h3>📈 Recent Earnings</h3>
+                    <div class="earnings-list" id="earningsList">
+                        <div class="earning-item">
+                            <span>Daily Check-in</span>
+                            <span>+₹5</span>
+                        </div>
+                        <div class="earning-item">
+                            <span>Scratch Card</span>
+                            <span>+₹3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="dashboard-card stats-card">
+                    <h3>📊 Your Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat">
+                            <div class="stat-value" id="totalEarned">₹0</div>
+                            <div class="stat-label">Total Earned</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="tasksCompleted">0</div>
+                            <div class="stat-label">Tasks Done</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="referralsCount">0</div>
+                            <div class="stat-label">Referrals</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
