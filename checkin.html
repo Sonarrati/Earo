@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Check-in - Earo</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <h1>🌐 Earo</h1>
+            </div>
+            <nav class="nav">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="checkin.html" class="nav-link active">Check-in</a>
+                <a href="scratch.html" class="nav-link">Scratch</a>
+                <a href="treasure.html" class="nav-link">Treasure</a>
+                <a href="tasks.html" class="nav-link">Tasks</a>
+                <a href="withdraw.html" class="nav-link">Withdraw</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h2>📅 Daily Check-in</h2>
+                <p>Check in daily to maintain your streak and earn rewards!</p>
+            </div>
+
+            <div class="checkin-container">
+                <!-- Streak Info -->
+                <div class="streak-card">
+                    <div class="streak-badge">
+                        <div class="streak-count" id="currentStreak">0</div>
+                        <div class="streak-label">Day Streak</div>
+                    </div>
+                    <div class="streak-info">
+                        <p>🔥 Your current streak: <span id="streakDays">0 days</span></p>
+                        <p>💰 Multiplier bonus: <span id="streakMultiplier">1.0×</span></p>
+                    </div>
+                </div>
+
+                <!-- Check-in Button -->
+                <div class="checkin-card" id="checkinCard">
+                    <div class="checkin-animation">
+                        <div class="calendar">
+                            <div class="calendar-header">Today</div>
+                            <div class="calendar-date" id="currentDate">--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="checkin-reward">
+                        <h3>Today's Reward</h3>
+                        <div class="reward-amount" id="todayReward">₹2-₹10</div>
+                        <p>Based on your current plan</p>
+                    </div>
+
+                    <button class="btn btn-primary btn-large checkin-btn" id="checkinBtn" disabled>
+                        🎯 Check-in Today
+                    </button>
+                    
+                    <div class="checkin-status" id="checkinStatus">
+                        <p>Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Weekly Calendar -->
+                <div class="weekly-calendar">
+                    <h3>This Week's Check-ins</h3>
+                    <div class="week-days" id="weekDays">
+                        <!-- Days will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Recent Check-ins -->
+                <div class="recent-checkins">
+                    <h3>Recent Check-ins</h3>
+                    <div class="checkins-list" id="checkinsList">
+                        <!-- Check-ins will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/checkin.js"></script>
+</body>
+</html>
