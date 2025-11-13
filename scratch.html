@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EARO - Scratch Card</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+        :root{--primary-gradient:linear-gradient(135deg,#8B5CF6,#7C3AED);--light-bg:linear-gradient(135deg,#F6F3FF,#EDE7F6);--card-light:rgba(255,255,255,0.7);--text-light:#333;--shadow-light:0 8px 25px rgba(0,0,0,0.15);}
+        body{background:var(--light-bg);color:var(--text-light);min-height:100vh;padding-bottom:80px;}
+        .container{max-width:100%;padding:15px;}
+        .header{display:flex;justify-content:space-between;align-items:center;padding:15px 0;margin-bottom:20px;}
+        .back-btn{background:none;border:none;font-size:20px;cursor:pointer;}
+        .logo{font-size:24px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .scratch-card{background:var(--card-light);backdrop-filter:blur(15px);border-radius:25px;padding:40px 30px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);text-align:center;margin-bottom:30px;}
+        .scratch-area{width:200px;height:200px;background:#ccc;border-radius:15px;margin:20px auto;position:relative;overflow:hidden;cursor:pointer;}
+        .scratch-canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+        .reward-amount{font-size:32px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;margin:20px 0;}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card-light);backdrop-filter:blur(15px);border-top:1px solid rgba(255,255,255,0.3);display:flex;justify-content:space-around;padding:10px 0;z-index:100;}
+        .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--text-light);font-size:12px;}
+        .nav-item.active{color:#8B5CF6;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
+            <div class="logo">EARO</div>
+            <div style="width:24px;"></div>
+        </div>
+        <div class="scratch-card">
+            <div style="font-size:80px;margin-bottom:20px;">🎯</div>
+            <div style="font-size:28px;font-weight:600;margin-bottom:10px;">Scratch Card</div>
+            <div class="scratch-area" id="scratchArea">
+                <canvas class="scratch-canvas" id="scratchCanvas"></canvas>
+            </div>
+            <div id="rewardDisplay" style="display:none;">
+                <div>You won:</div>
+                <div class="reward-amount" id="rewardAmount">₹0</div>
+            </div>
+            <button style="background:var(--primary-gradient);color:white;border:none;padding:15px 40px;border-radius:15px;font-size:18px;font-weight:600;cursor:pointer;margin-top:20px;" id="scratchAgainBtn" style="display:none;">Scratch Again</button>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item"><div style="font-size:20px;">🏠</div><div>Home</div></a>
+        <a href="tasks.html" class="nav-item"><div style="font-size:20px;">📋</div><div>Tasks</div></a>
+        <a href="scratch.html" class="nav-item active"><div style="font-size:20px;">🎯</div><div>Scratch</div></a>
+        <a href="withdraw.html" class="nav-item"><div style="font-size:20px;">💸</div><div>Withdraw</div></a>
+        <a href="profile.html" class="nav-item"><div style="font-size:20px;">👤</div><div>Profile</div></a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://yxzztomtgaqmboquoszg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4enp0b210Z2FxbWJvcXVvc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzU4OTQsImV4cCI6MjA3ODAxMTg5NH0.NKaBpeTUE3zgcyCOl_mbF1NJHGry5I8vBDzkb1RS1DY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+        let reward = 0;
+        let scratched = false;
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) window.location.href = 'index.html';
+            currentUser = session.user;
+            initScratchCard();
+        });
+
+        function initScratchCard() {
+            const canvas = document.getElementById('scratchCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 200;
+            canvas.height = 200;
+            
+            // Draw scratchable surface
+            ctx.fillStyle = '#8B5CF6';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#7C3AED';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Scratch Me!', canvas.width/2, canvas.height/2);
+            
+            // Set composite operation for erasing
+            ctx.globalCompositeOperation = 'destination-out';
+            
+            let isDrawing = false;
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('mouseup', endDrawing);
+            canvas.addEventListener('touchend', endDrawing);
+            
+            function startDrawing(e) {
+                if (scratched) return;
+                isDrawing = true;
+                draw(e);
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Check if 50% is scratched
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const transparentPixels = countTransparentPixels(imageData);
+                if (transparentPixels > (canvas.width * canvas.height * 0.5)) {
+                    revealReward();
+                }
+            }
+            
+            function endDrawing() {
+                isDrawing = false;
+            }
+            
+            function countTransparentPixels(imageData) {
+                let count = 0;
+                for (let i = 3; i < imageData.data.length; i += 4) {
+                    if (imageData.data[i] === 0) count++;
+                }
+                return count;
+            }
+        }
+        
+        function revealReward() {
+            if (scratched) return;
+            scratched = true;
+            reward = Math.floor(Math.random() * 8) + 3; // ₹3-₹10
+            document.getElementById('rewardDisplay').style.display = 'block';
+            document.getElementById('rewardAmount').textContent = '₹' + reward;
+            document.getElementById('scratchAgainBtn').style.display = 'block';
+            processReward();
+        }
+        
+        async function processReward() {
+            try {
+                await supabase.from('scratch_logs').insert([{ user_id: currentUser.id, reward: reward, created_at: new Date().toISOString() }]);
+                const { data: user } = await supabase.from('users').select('wallet, total_earned').eq('id', currentUser.id).single();
+                const newWallet = user.wallet + reward;
+                const newTotal = user.total_earned + reward;
+                await supabase.from('users').update({ wallet: newWallet, total_earned: newTotal }).eq('id', currentUser.id);
+                await supabase.from('transactions').insert([{ user_id: currentUser.id, amount: reward, type: 'credit', reason: 'Scratch Card', created_at: new Date().toISOString() }]);
+            } catch (error) {
+                console.error('Error processing reward:', error);
+            }
+        }
+        
+        document.getElementById('scratchAgainBtn').addEventListener('click', function() {
+            location.reload();
+        });
+    </script>
+</body>
+</html>
