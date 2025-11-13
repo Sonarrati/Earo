@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EARO - Tasks</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+        :root{--primary-gradient:linear-gradient(135deg,#8B5CF6,#7C3AED);--light-bg:linear-gradient(135deg,#F6F3FF,#EDE7F6);--card-light:rgba(255,255,255,0.7);--text-light:#333;--shadow-light:0 8px 25px rgba(0,0,0,0.15);}
+        body{background:var(--light-bg);color:var(--text-light);min-height:100vh;padding-bottom:80px;}
+        .container{max-width:100%;padding:15px;}
+        .header{display:flex;justify-content:space-between;align-items:center;padding:15px 0;margin-bottom:20px;}
+        .back-btn{background:none;border:none;font-size:20px;cursor:pointer;}
+        .logo{font-size:24px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .task-card{background:var(--card-light);backdrop-filter:blur(15px);border-radius:20px;padding:20px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);margin-bottom:15px;}
+        .task-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+        .task-reward{background:var(--primary-gradient);color:white;padding:5px 10px;border-radius:10px;font-size:12px;font-weight:600;}
+        .task-description{font-size:14px;margin-bottom:15px;opacity:0.8;}
+        .upload-btn{background:var(--primary-gradient);color:white;border:none;padding:10px 20px;border-radius:10px;font-size:14px;cursor:pointer;}
+        .upload-btn:disabled{opacity:0.6;cursor:not-allowed;}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card-light);backdrop-filter:blur(15px);border-top:1px solid rgba(255,255,255,0.3);display:flex;justify-content:space-around;padding:10px 0;z-index:100;}
+        .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--text-light);font-size:12px;}
+        .nav-item.active{color:#8B5CF6;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
+            <div class="logo">EARO</div>
+            <div style="width:24px;"></div>
+        </div>
+        
+        <div id="tasksList">
+            <div class="task-card">
+                <div class="task-header">
+                    <div style="font-weight:600;">Watch Video Ads</div>
+                    <div class="task-reward">₹10</div>
+                </div>
+                <div class="task-description">Watch 5 video ads to complete this task</div>
+                <button class="upload-btn" onclick="uploadProof('Watch Video Ads', 10)">Upload Proof</button>
+            </div>
+            
+            <div class="task-card">
+                <div class="task-header">
+                    <div style="font-weight:600;">Install App</div>
+                    <div class="task-reward">₹25</div>
+                </div>
+                <div class="task-description">Install and open the recommended app</div>
+                <button class="upload-btn" onclick="uploadProof('Install App', 25)">Upload Proof</button>
+            </div>
+            
+            <div class="task-card">
+                <div class="task-header">
+                    <div style="font-weight:600;">Complete Survey</div>
+                    <div class="task-reward">₹15</div>
+                </div>
+                <div class="task-description">Complete a short survey form</div>
+                <button class="upload-btn" onclick="uploadProof('Complete Survey', 15)">Upload Proof</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item"><div style="font-size:20px;">🏠</div><div>Home</div></a>
+        <a href="tasks.html" class="nav-item active"><div style="font-size:20px;">📋</div><div>Tasks</div></a>
+        <a href="subscriptions.html" class="nav-item"><div style="font-size:20px;">💰</div><div>Earn</div></a>
+        <a href="withdraw.html" class="nav-item"><div style="font-size:20px;">💸</div><div>Withdraw</div></a>
+        <a href="profile.html" class="nav-item"><div style="font-size:20px;">👤</div><div>Profile</div></a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://yxzztomtgaqmboquoszg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4enp0b210Z2FxbWJvcXVvc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzU4OTQsImV4cCI6MjA3ODAxMTg5NH0.NKaBpeTUE3zgcyCOl_mbF1NJHGry5I8vBDzkb1RS1DY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) window.location.href = 'index.html';
+            currentUser = session.user;
+            loadUserTasks();
+        });
+
+        async function loadUserTasks() {
+            const { data: tasks } = await supabase
+                .from('tasks')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+            
+            // Disable buttons for pending tasks
+            if (tasks) {
+                tasks.forEach(task => {
+                    if (task.status === 'pending') {
+                        const buttons = document.querySelectorAll('.upload-btn');
+                        buttons.forEach(btn => {
+                            if (btn.textContent.includes(task.title)) {
+                                btn.disabled = true;
+                                btn.textContent = 'Pending Approval';
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        async function uploadProof(taskTitle, reward) {
+            try {
+                // Create task record
+                const { error } = await supabase
+                    .from('tasks')
+                    .insert([{
+                        user_id: currentUser.id,
+                        title: taskTitle,
+                        reward: reward,
+                        status: 'pending',
+                        created_at: new Date().toISOString()
+                    }]);
+
+                if (error) throw error;
+
+                alert('Task submitted for approval! Admin will review your proof.');
+                
+                // Disable the button
+                event.target.disabled = true;
+                event.target.textContent = 'Pending Approval';
+                
+            } catch (error) {
+                console.error('Error submitting task:', error);
+                alert('Error submitting task. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
