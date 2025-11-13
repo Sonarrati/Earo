@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EARO - Leaderboard</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+        :root{--primary-gradient:linear-gradient(135deg,#8B5CF6,#7C3AED);--light-bg:linear-gradient(135deg,#F6F3FF,#EDE7F6);--card-light:rgba(255,255,255,0.7);--text-light:#333;--shadow-light:0 8px 25px rgba(0,0,0,0.15);}
+        body{background:var(--light-bg);color:var(--text-light);min-height:100vh;padding-bottom:80px;}
+        .container{max-width:100%;padding:15px;}
+        .header{display:flex;justify-content:space-between;align-items:center;padding:15px 0;margin-bottom:20px;}
+        .back-btn{background:none;border:none;font-size:20px;cursor:pointer;}
+        .logo{font-size:24px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .time-filter{display:flex;justify-content:center;gap:10px;margin-bottom:20px;}
+        .filter-btn{padding:8px 16px;border-radius:20px;border:1px solid #8B5CF6;background:none;color:#8B5CF6;cursor:pointer;}
+        .filter-btn.active{background:var(--primary-gradient);color:white;}
+        .leaderboard-card{background:var(--card-light);backdrop-filter:blur(15px);border-radius:20px;padding:20px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);}
+        .leaderboard-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.1);}
+        .leaderboard-item:last-child{border-bottom:none;}
+        .leaderboard-item.current-user{background:rgba(139,92,246,0.1);margin:0 -20px;padding:12px 20px;border-radius:10px;}
+        .rank{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--primary-gradient);color:white;font-weight:600;margin-right:15px;}
+        .rank-1{background:linear-gradient(135deg,#FFD700,#FFA500);}
+        .rank-2{background:linear-gradient(135deg,#C0C0C0,#A0A0A0);}
+        .rank-3{background:linear-gradient(135deg,#CD7F32,#A0522D);}
+        .user-info{flex:1;}
+        .user-name{font-weight:600;}
+        .user-plan{font-size:12px;opacity:0.7;}
+        .user-earnings{font-weight:600;color:#8B5CF6;}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card-light);backdrop-filter:blur(15px);border-top:1px solid rgba(255,255,255,0.3);display:flex;justify-content:space-around;padding:10px 0;z-index:100;}
+        .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--text-light);font-size:12px;}
+        .nav-item.active{color:#8B5CF6;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
+            <div class="logo">EARO</div>
+            <div style="width:24px;"></div>
+        </div>
+        
+        <div class="time-filter">
+            <button class="filter-btn active" onclick="loadLeaderboard('daily')">Daily</button>
+            <button class="filter-btn" onclick="loadLeaderboard('weekly')">Weekly</button>
+            <button class="filter-btn" onclick="loadLeaderboard('monthly')">Monthly</button>
+        </div>
+        
+        <div class="leaderboard-card" id="leaderboardContainer">
+            <div class="leaderboard-item">
+                <div class="rank">1</div>
+                <div class="user-info">
+                    <div class="user-name">Loading...</div>
+                    <div class="user-plan">Free Plan</div>
+                </div>
+                <div class="user-earnings">₹0.00</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item"><div style="font-size:20px;">🏠</div><div>Home</div></a>
+        <a href="tasks.html" class="nav-item"><div style="font-size:20px;">📋</div><div>Tasks</div></a>
+        <a href="subscriptions.html" class="nav-item"><div style="font-size:20px;">💰</div><div>Earn</div></a>
+        <a href="leaderboard.html" class="nav-item active"><div style="font-size:20px;">🏆</div><div>Leaderboard</div></a>
+        <a href="profile.html" class="nav-item"><div style="font-size:20px;">👤</div><div>Profile</div></a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://yxzztomtgaqmboquoszg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4enp0b210Z2FxbWJvcXVvc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzU4OTQsImV4cCI6MjA3ODAxMTg5NH0.NKaBpeTUE3zgcyCOl_mbF1NJHGry5I8vBDzkb1RS1DY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) window.location.href = 'index.html';
+            currentUser = session.user;
+            loadLeaderboard('daily');
+        });
+
+        async function loadLeaderboard(type) {
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            let startDate;
+            const now = new Date();
+            
+            switch(type) {
+                case 'daily':
+                    startDate = new Date(now.setHours(0,0,0,0));
+                    break;
+                case 'weekly':
+                    startDate = new Date(now.setDate(now.getDate() - 7));
+                    break;
+                case 'monthly':
+                    startDate = new Date(now.setMonth(now.getMonth() - 1));
+                    break;
+            }
+
+            const { data: transactions, error } = await supabase
+                .from('transactions')
+                .select('user_id, amount')
+                .gte('created_at', startDate.toISOString())
+                .eq('type', 'credit');
+
+            if (error) {
+                console.error('Error loading leaderboard:', error);
+                return;
+            }
+
+            // Calculate earnings per user
+            const userEarnings = {};
+            transactions.forEach(transaction => {
+                if (!userEarnings[transaction.user_id]) {
+                    userEarnings[transaction.user_id] = 0;
+                }
+                userEarnings[transaction.user_id] += transaction.amount;
+            });
+
+            // Get user details for top earners
+            const topUserIds = Object.keys(userEarnings)
+                .sort((a, b) => userEarnings[b] - userEarnings[a])
+                .slice(0, 10);
+
+            if (topUserIds.length === 0) {
+                document.getElementById('leaderboardContainer').innerHTML = '<div class="leaderboard-item"><div style="text-align:center;width:100%;">No data available</div></div>';
+                return;
+            }
+
+            const { data: users, error: usersError } = await supabase
+                .from('users')
+                .select('id, email, plan_id')
+                .in('id', topUserIds);
+
+            if (usersError) {
+                console.error('Error loading user details:', usersError);
+                return;
+            }
+
+            // Display leaderboard
+            const leaderboardHTML = users.map((user, index) => `
+                <div class="leaderboard-item ${user.id === currentUser.id ? 'current-user' : ''}">
+                    <div class="rank ${index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : ''}">${index + 1}</div>
+                    <div class="user-info">
+                        <div class="user-name">${user.id === currentUser.id ? 'You' : user.email.split('@')[0]}</div>
+                        <div class="user-plan">${getPlanName(user.plan_id)}</div>
+                    </div>
+                    <div class="user-earnings">₹${userEarnings[user.id].toFixed(2)}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('leaderboardContainer').innerHTML = leaderboardHTML;
+        }
+
+        function getPlanName(planId) {
+            const plans = {
+                1: 'Free Plan',
+                2: 'Silver Plan',
+                3: 'Gold Plan',
+                4: 'Diamond Plan'
+            };
+            return plans[planId] || 'Free Plan';
+        }
+    </script>
+</body>
+</html>
