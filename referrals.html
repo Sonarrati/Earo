@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EARO - Referrals</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+        :root{--primary-gradient:linear-gradient(135deg,#8B5CF6,#7C3AED);--light-bg:linear-gradient(135deg,#F6F3FF,#EDE7F6);--card-light:rgba(255,255,255,0.7);--text-light:#333;--shadow-light:0 8px 25px rgba(0,0,0,0.15);}
+        body{background:var(--light-bg);color:var(--text-light);min-height:100vh;padding-bottom:80px;}
+        .container{max-width:100%;padding:15px;}
+        .header{display:flex;justify-content:space-between;align-items:center;padding:15px 0;margin-bottom:20px;}
+        .back-btn{background:none;border:none;font-size:20px;cursor:pointer;}
+        .logo{font-size:24px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .referral-card{background:var(--card-light);backdrop-filter:blur(15px);border-radius:20px;padding:25px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);margin-bottom:20px;text-align:center;}
+        .referral-code{background:rgba(139,92,246,0.1);padding:15px;border-radius:15px;text-align:center;font-size:18px;font-weight:600;letter-spacing:2px;margin:15px 0;}
+        .share-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0;}
+        .share-btn{padding:10px;border-radius:10px;border:1px solid #8B5CF6;color:#8B5CF6;background:none;cursor:pointer;}
+        .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin:20px 0;}
+        .stat-card{background:rgba(255,255,255,0.5);padding:15px;border-radius:15px;text-align:center;}
+        .stat-value{font-size:18px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .stat-label{font-size:12px;opacity:0.7;}
+        .referrals-list{background:var(--card-light);backdrop-filter:blur(15px);border-radius:20px;padding:20px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);}
+        .referral-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.1);}
+        .referral-item:last-child{border-bottom:none;}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card-light);backdrop-filter:blur(15px);border-top:1px solid rgba(255,255,255,0.3);display:flex;justify-content:space-around;padding:10px 0;z-index:100;}
+        .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--text-light);font-size:12px;}
+        .nav-item.active{color:#8B5CF6;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
+            <div class="logo">EARO</div>
+            <div style="width:24px;"></div>
+        </div>
+        
+        <div class="referral-card">
+            <div style="font-size:24px;font-weight:600;margin-bottom:10px;">Invite Friends & Earn</div>
+            <div style="margin-bottom:15px;">Get ₹25 for every friend who joins using your code</div>
+            
+            <div>Your Referral Code:</div>
+            <div class="referral-code" id="referralCode">LOADING</div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalReferrals">0</div>
+                    <div class="stat-label">Total Referrals</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="referralEarnings">₹0</div>
+                    <div class="stat-label">Total Earnings</div>
+                </div>
+            </div>
+            
+            <div class="share-buttons">
+                <button class="share-btn" onclick="shareWhatsApp()">WhatsApp</button>
+                <button class="share-btn" onclick="shareTelegram()">Telegram</button>
+                <button class="share-btn" onclick="copyReferralLink()">Copy Link</button>
+            </div>
+        </div>
+        
+        <div class="referrals-list">
+            <div style="font-weight:600;margin-bottom:15px;">Your Referrals</div>
+            <div id="referralsContainer">
+                <div class="referral-item">
+                    <div>No referrals yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item"><div style="font-size:20px;">🏠</div><div>Home</div></a>
+        <a href="tasks.html" class="nav-item"><div style="font-size:20px;">📋</div><div>Tasks</div></a>
+        <a href="referrals.html" class="nav-item active"><div style="font-size:20px;">🤝</div><div>Referrals</div></a>
+        <a href="withdraw.html" class="nav-item"><div style="font-size:20px;">💸</div><div>Withdraw</div></a>
+        <a href="profile.html" class="nav-item"><div style="font-size:20px;">👤</div><div>Profile</div></a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://yxzztomtgaqmboquoszg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4enp0b210Z2FxbWJvcXVvc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzU4OTQsImV4cCI6MjA3ODAxMTg5NH0.NKaBpeTUE3zgcyCOl_mbF1NJHGry5I8vBDzkb1RS1DY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) window.location.href = 'index.html';
+            currentUser = session.user;
+            loadReferralData();
+        });
+
+        async function loadReferralData() {
+            // Load user referral code
+            const { data: user } = await supabase
+                .from('users')
+                .select('referral_code')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (user) {
+                document.getElementById('referralCode').textContent = user.referral_code;
+            }
+
+            // Load referrals
+            const { data: referrals, error } = await supabase
+                .from('referrals')
+                .select('*, users!referrals_referred_id_fkey(email, created_at)')
+                .eq('referrer_id', currentUser.id);
+            
+            if (error) {
+                console.error('Error loading referrals:', error);
+                return;
+            }
+
+            if (referrals && referrals.length > 0) {
+                document.getElementById('totalReferrals').textContent = referrals.length;
+                
+                const totalEarnings = referrals.filter(r => r.reward_status === 'paid').length * 25;
+                document.getElementById('referralEarnings').textContent = '₹' + totalEarnings;
+
+                const referralsHTML = referrals.map(ref => `
+                    <div class="referral-item">
+                        <div>
+                            <div>${ref.users.email}</div>
+                            <div style="font-size:12px;opacity:0.7;">${new Date(ref.users.created_at).toLocaleDateString()}</div>
+                        </div>
+                        <div style="color:${ref.reward_status === 'paid' ? '#10B981' : '#F59E0B'};">
+                            ${ref.reward_status === 'paid' ? '₹25 Earned' : 'Pending'}
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('referralsContainer').innerHTML = referralsHTML;
+            }
+        }
+
+        function shareWhatsApp() {
+            const code = document.getElementById('referralCode').textContent;
+            const message = `Join EARO using my referral code ${code} and start earning money! Download now: [APP_LINK]`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        function shareTelegram() {
+            const code = document.getElementById('referralCode').textContent;
+            const message = `Join EARO using my referral code ${code} and start earning money! Download now: [APP_LINK]`;
+            window.open(`https://t.me/share/url?url=${encodeURIComponent('[APP_LINK]')}&text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        function copyReferralLink() {
+            const code = document.getElementById('referralCode').textContent;
+            const link = `[APP_LINK]?ref=${code}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Referral link copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
