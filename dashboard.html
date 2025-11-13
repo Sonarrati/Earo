@@ -3,129 +3,574 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Earo</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>EARO - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        :root {
+            --primary-gradient: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            --secondary-gradient: linear-gradient(135deg, #C4B5FD, #A78BFA);
+            --light-bg: linear-gradient(135deg, #F6F3FF, #EDE7F6);
+            --dark-bg: linear-gradient(135deg, #1A1A1A, #2E2A36);
+            --card-light: rgba(255, 255, 255, 0.7);
+            --card-dark: rgba(255, 255, 255, 0.1);
+            --text-light: #333;
+            --text-dark: #F5F5F5;
+            --shadow-light: 0 8px 25px rgba(0,0,0,0.15);
+            --shadow-dark: 0 8px 25px rgba(0,0,0,0.4);
+            --accent: #8B5CF6;
+        }
+        
+        body {
+            background: var(--light-bg);
+            color: var(--text-light);
+            transition: all 0.5s ease;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        body.dark-mode {
+            background: var(--dark-bg);
+            color: var(--text-dark);
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 15px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .wallet-card {
+            background: var(--card-light);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow-light);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 20px;
+        }
+        
+        .dark-mode .wallet-card {
+            background: var(--card-dark);
+            box-shadow: var(--shadow-dark);
+        }
+        
+        .wallet-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .balance {
+            font-size: 32px;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .withdraw-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .activity-card {
+            background: var(--card-light);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow-light);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-align: center;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .dark-mode .activity-card {
+            background: var(--card-dark);
+            box-shadow: var(--shadow-dark);
+        }
+        
+        .activity-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .activity-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .activity-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .activity-desc {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0 15px;
+        }
+        
+        .leaderboard-card {
+            background: var(--card-light);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow-light);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .dark-mode .leaderboard-card {
+            background: var(--card-dark);
+            box-shadow: var(--shadow-dark);
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .dark-mode .leaderboard-item {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rank {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--secondary-gradient);
+            color: white;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+        
+        .user-info-leaderboard {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+        }
+        
+        .user-plan {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .user-earnings {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-light);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .dark-mode .bottom-nav {
+            background: var(--card-dark);
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .dark-mode .nav-item {
+            color: var(--text-dark);
+        }
+        
+        .nav-item.active {
+            color: var(--accent);
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 3px;
+        }
+        
+        .mode-toggle {
+            width: 50px;
+            height: 26px;
+            background: var(--primary-gradient);
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .toggle-circle {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .dark-mode .toggle-circle {
+            left: 27px;
+        }
+        
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            top: -10px;
+            opacity: 0;
+            z-index: 1000;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .dark-mode .logout-btn {
+            color: var(--text-dark);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="logo">
-                <h1>🌐 Earo</h1>
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">EARO</div>
+            <div class="user-info">
+                <div class="mode-toggle" id="modeToggle">
+                    <div class="toggle-circle"></div>
+                </div>
+                <div class="user-avatar" id="userAvatar">U</div>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
             </div>
-            <nav class="nav">
-                <a href="dashboard.html" class="nav-link active">Dashboard</a>
-                <a href="checkin.html" class="nav-link">Check-in</a>
-                <a href="scratch.html" class="nav-link">Scratch</a>
-                <a href="treasure.html" class="nav-link">Treasure</a>
-                <a href="tasks.html" class="nav-link">Tasks</a>
-                <a href="withdraw.html" class="nav-link">Withdraw</a>
-                <a href="profile.html" class="nav-link">Profile</a>
-            </nav>
-        </header>
-
-        <main class="main-content">
-            <div class="welcome-section">
-                <h2>Welcome, <span id="userName">User</span>! 👋</h2>
-                <p>Ready to earn some money today?</p>
+        </div>
+        
+        <!-- Wallet Card -->
+        <div class="wallet-card">
+            <div class="wallet-header">
+                <div>Your Balance</div>
+                <div>₹ <span class="balance" id="balance">0.00</span></div>
             </div>
-
-            <div class="dashboard-grid">
-                <!-- Wallet Card -->
-                <div class="dashboard-card wallet-card">
-                    <h3>💰 Your Wallet</h3>
-                    <div class="wallet-amount" id="walletAmount">₹0</div>
-                    <div class="wallet-actions">
-                        <button class="btn btn-primary" onclick="location.href='withdraw.html'">
-                            Withdraw Money
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Plan Card -->
-                <div class="dashboard-card plan-card">
-                    <h3>🎯 Current Plan</h3>
-                    <div class="plan-info">
-                        <div class="plan-name" id="planName">Free Plan</div>
-                        <div class="plan-multiplier" id="planMultiplier">Multiplier: 0.2×</div>
-                        <div class="plan-expiry" id="planExpiry">Lifetime</div>
-                    </div>
-                    <button class="btn btn-secondary" onclick="location.href='subscriptions.html'">
-                        Upgrade Plan
-                    </button>
-                </div>
-
-                <!-- Streak Card -->
-                <div class="dashboard-card streak-card">
-                    <h3>🔥 Daily Streak</h3>
-                    <div class="streak-info">
-                        <div class="streak-count" id="streakCount">0 Days</div>
-                        <div class="streak-note">Check-in daily to maintain streak!</div>
-                    </div>
-                    <button class="btn btn-success" onclick="location.href='checkin.html'">
-                        Check-in Today
-                    </button>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="dashboard-card actions-card">
-                    <h3>🚀 Quick Actions</h3>
-                    <div class="action-buttons">
-                        <button class="btn action-btn" onclick="location.href='scratch.html'">
-                            🎴 Scratch Card
-                        </button>
-                        <button class="btn action-btn" onclick="location.href='treasure.html'">
-                            🎁 Open Treasure
-                        </button>
-                        <button class="btn action-btn" onclick="location.href='tasks.html'">
-                            ✅ Complete Tasks
-                        </button>
-                        <button class="btn action-btn" onclick="location.href='referrals.html'">
-                            👥 Refer Friends
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Recent Earnings -->
-                <div class="dashboard-card earnings-card">
-                    <h3>📈 Recent Earnings</h3>
-                    <div class="earnings-list" id="earningsList">
-                        <div class="earning-item">
-                            <span>Daily Check-in</span>
-                            <span>+₹5</span>
-                        </div>
-                        <div class="earning-item">
-                            <span>Scratch Card</span>
-                            <span>+₹3</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Card -->
-                <div class="dashboard-card stats-card">
-                    <h3>📊 Your Stats</h3>
-                    <div class="stats-grid">
-                        <div class="stat">
-                            <div class="stat-value" id="totalEarned">₹0</div>
-                            <div class="stat-label">Total Earned</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value" id="tasksCompleted">0</div>
-                            <div class="stat-label">Tasks Done</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value" id="referralsCount">0</div>
-                            <div class="stat-label">Referrals</div>
-                        </div>
-                    </div>
-                </div>
+            <div>Withdrawable: ₹<span id="withdrawable">0.00</span></div>
+            <button class="withdraw-btn" onclick="window.location.href='withdraw.html'">Withdraw</button>
+        </div>
+        
+        <!-- Activity Grid -->
+        <div class="activity-grid">
+            <div class="activity-card" onclick="window.location.href='checkin.html'">
+                <div class="activity-icon">✅</div>
+                <div class="activity-title">Daily Check-in</div>
+                <div class="activity-desc">₹2-₹10 reward</div>
             </div>
-        </main>
+            <div class="activity-card" onclick="window.location.href='scratch.html'">
+                <div class="activity-icon">🎯</div>
+                <div class="activity-title">Scratch Card</div>
+                <div class="activity-desc">₹3-₹10 reward</div>
+            </div>
+            <div class="activity-card" onclick="window.location.href='treasure.html'">
+                <div class="activity-icon">🪙</div>
+                <div class="activity-title">Treasure Box</div>
+                <div class="activity-desc">₹5-₹15 reward</div>
+            </div>
+            <div class="activity-card" onclick="window.location.href='tasks.html'">
+                <div class="activity-icon">📋</div>
+                <div class="activity-title">Tasks</div>
+                <div class="activity-desc">Complete & earn</div>
+            </div>
+        </div>
+        
+        <!-- Leaderboard -->
+        <div class="section-title">Top Earners Today</div>
+        <div class="leaderboard-card" id="leaderboard">
+            <div class="leaderboard-item">
+                <div class="rank">1</div>
+                <div class="user-info-leaderboard">
+                    <div class="user-name">Loading...</div>
+                    <div class="user-plan">Free Plan</div>
+                </div>
+                <div class="user-earnings">₹0.00</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item active">
+            <div class="nav-icon">🏠</div>
+            <div>Home</div>
+        </a>
+        <a href="tasks.html" class="nav-item">
+            <div class="nav-icon">📋</div>
+            <div>Tasks</div>
+        </a>
+        <a href="subscriptions.html" class="nav-item">
+            <div class="nav-icon">💰</div>
+            <div>Earn</div>
+        </a>
+        <a href="withdraw.html" class="nav-item">
+            <div class="nav-icon">💸</div>
+            <div>Withdraw</div>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <div class="nav-icon">👤</div>
+            <div>Profile</div>
+        </a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script>
+        // Supabase configuration
+        const supabaseUrl = 'https://yxzztomtgaqmboquoszg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4enp0b210Z2FxbWJvcXVvc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzU4OTQsImV4cCI6MjA3ODAxMTg5NH0.NKaBpeTUE3zgcyCOl_mbF1NJHGry5I8vBDzkb1RS1DY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let currentUser = null;
+
+        // Check authentication
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+            currentUser = session.user;
+            loadUserData();
+            loadLeaderboard();
+        });
+
+        // Load user data
+        async function loadUserData() {
+            const { data: user, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (error) {
+                console.error('Error loading user data:', error);
+                return;
+            }
+
+            // Update UI
+            document.getElementById('balance').textContent = user.wallet.toFixed(2);
+            document.getElementById('withdrawable').textContent = (user.wallet >= 100 ? user.wallet : 0).toFixed(2);
+            document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+            
+            // Set dark mode if enabled
+            if (user.dark_mode) {
+                document.body.classList.add('dark-mode');
+            }
+        }
+
+        // Load leaderboard
+        async function loadLeaderboard() {
+            // Get today's start and end
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const { data: transactions, error } = await supabase
+                .from('transactions')
+                .select('user_id, amount')
+                .gte('created_at', today.toISOString())
+                .lt('created_at', tomorrow.toISOString())
+                .eq('type', 'credit');
+
+            if (error) {
+                console.error('Error loading leaderboard:', error);
+                return;
+            }
+
+            // Calculate earnings per user
+            const userEarnings = {};
+            transactions.forEach(transaction => {
+                if (!userEarnings[transaction.user_id]) {
+                    userEarnings[transaction.user_id] = 0;
+                }
+                userEarnings[transaction.user_id] += transaction.amount;
+            });
+
+            // Get user details for top earners
+            const topUserIds = Object.keys(userEarnings)
+                .sort((a, b) => userEarnings[b] - userEarnings[a])
+                .slice(0, 5);
+
+            if (topUserIds.length === 0) {
+                document.getElementById('leaderboard').innerHTML = '<div class="leaderboard-item">No earnings today</div>';
+                return;
+            }
+
+            const { data: users, error: usersError } = await supabase
+                .from('users')
+                .select('id, email, plan_id')
+                .in('id', topUserIds);
+
+            if (usersError) {
+                console.error('Error loading user details:', usersError);
+                return;
+            }
+
+            // Display leaderboard
+            const leaderboardHTML = users.map((user, index) => `
+                <div class="leaderboard-item ${user.id === currentUser.id ? 'current-user' : ''}">
+                    <div class="rank">${index + 1}</div>
+                    <div class="user-info-leaderboard">
+                        <div class="user-name">${user.id === currentUser.id ? 'You' : user.email.split('@')[0]}</div>
+                        <div class="user-plan">${getPlanName(user.plan_id)}</div>
+                    </div>
+                    <div class="user-earnings">₹${userEarnings[user.id].toFixed(2)}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('leaderboard').innerHTML = leaderboardHTML;
+        }
+
+        function getPlanName(planId) {
+            const plans = {
+                1: 'Free Plan',
+                2: 'Silver Plan',
+                3: 'Gold Plan',
+                4: 'Diamond Plan'
+            };
+            return plans[planId] || 'Free Plan';
+        }
+
+        // Dark mode toggle
+        document.getElementById('modeToggle').addEventListener('click', async function() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
+            // Update user preference in database
+            if (currentUser) {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ dark_mode: isDarkMode })
+                    .eq('id', currentUser.id);
+
+                if (error) {
+                    console.error('Error updating dark mode:', error);
+                }
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        });
+
+        // Real-time wallet updates
+        supabase
+            .channel('wallet_updates')
+            .on('postgres_changes', 
+                { 
+                    event: 'UPDATE', 
+                    schema: 'public', 
+                    table: 'users',
+                    filter: `id=eq.${currentUser?.id}`
+                }, 
+                (payload) => {
+                    if (payload.new.wallet !== payload.old.wallet) {
+                        document.getElementById('balance').textContent = payload.new.wallet.toFixed(2);
+                        document.getElementById('withdrawable').textContent = (payload.new.wallet >= 100 ? payload.new.wallet : 0).toFixed(2);
+                    }
+                }
+            )
+            .subscribe();
+    </script>
 </body>
 </html>
