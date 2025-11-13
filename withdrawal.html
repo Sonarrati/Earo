@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EARO - Withdraw</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+        :root{--primary-gradient:linear-gradient(135deg,#8B5CF6,#7C3AED);--light-bg:linear-gradient(135deg,#F6F3FF,#EDE7F6);--card-light:rgba(255,255,255,0.7);--text-light:#333;--shadow-light:0 8px 25px rgba(0,0,0,0.15);}
+        body{background:var(--light-bg);color:var(--text-light);min-height:100vh;padding-bottom:80px;}
+        .container{max-width:100%;padding:15px;}
+        .header{display:flex;justify-content:space-between;align-items:center;padding:15px 0;margin-bottom:20px;}
+        .back-btn{background:none;border:none;font-size:20px;cursor:pointer;}
+        .logo{font-size:24px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .withdraw-card{background:var(--card-light);backdrop-filter:blur(15px);border-radius:20px;padding:25px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);margin-bottom:20px;}
+        .balance-amount{font-size:32px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:10px;}
+        .withdraw-form{margin-top:20px;}
+        .form-group{margin-bottom:15px;}
+        .form-label{display:block;margin-bottom:5px;font-weight:600;}
+        .form-input{width:100%;padding:12px;border-radius:10px;border:1px solid #ddd;font-size:16px;}
+        .withdraw-btn{background:var(--primary-gradient);color:white;border:none;padding:15px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;width:100%;}
+        .withdraw-btn:disabled{opacity:0.6;cursor:not-allowed;}
+        .history-card{background:var(--card-light);backdrop-filter:blur(15px);border-radius:20px;padding:20px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);}
+        .history-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.1);}
+        .history-item:last-child{border-bottom:none;}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card-light);backdrop-filter:blur(15px);border-top:1px solid rgba(255,255,255,0.3);display:flex;justify-content:space-around;padding:10px 0;z-index:100;}
+        .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--text-light);font-size:12px;}
+        .nav-item.active{color:#8B5CF6;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
+            <div class="logo">EARO</div>
+            <div style="width:24px;"></div>
+        </div>
+        
+        <div class="withdraw-card">
+            <div>Available Balance</div>
+            <div class="balance-amount" id="availableBalance">₹0.00</div>
+            <div style="font-size:14px;opacity:0.8;">Minimum withdrawal: ₹100</div>
+            
+            <div class="withdraw-form">
+                <div class="form-group">
+                    <label class="form-label">Amount (₹)</label>
+                    <input type="number" class="form-input" id="withdrawAmount" placeholder="Enter amount" min="100" max="250">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">UPI ID</label>
+                    <input type="text" class="form-input" id="upiId" placeholder="Enter your UPI ID">
+                </div>
+                
+                <button class="withdraw-btn" id="withdrawBtn">Request Withdrawal</button>
+            </div>
+        </div>
+        
+        <div class="history-card">
+            <div style="font-weight:600;margin-bottom:15px;">Withdrawal History</div>
+            <div id="withdrawalHistory">
+                <div class="history-item">
+                    <div>No withdrawal history</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item"><div style="font-size:20px;">🏠</div><div>Home</div></a>
+        <a href="tasks.html" class="nav-item"><div style="font-size:20px;">📋</div><div>Tasks</div></a>
+        <a href="subscriptions.html" class="nav-item"><div style="font-size:20px;">💰</div><div>Earn</div></a>
+        <a href="withdraw.html" class="nav-item active"><div style="font-size:20px;">💸</div><div>Withdraw</div></a>
+        <a href="profile.html" class="nav-item"><div style="font-size:20px;">👤</div><div>Profile</div></a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://yxzztomtgaqmboquoszg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4enp0b210Z2FxbWJvcXVvc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzU4OTQsImV4cCI6MjA3ODAxMTg5NH0.NKaBpeTUE3zgcyCOl_mbF1NJHGry5I8vBDzkb1RS1DY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) window.location.href = 'index.html';
+            currentUser = session.user;
+            loadUserData();
+            loadWithdrawalHistory();
+        });
+
+        async function loadUserData() {
+            const { data: user } = await supabase
+                .from('users')
+                .select('wallet')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (user) {
+                document.getElementById('availableBalance').textContent = '₹' + user.wallet.toFixed(2);
+                
+                // Disable withdraw button if balance < 100
+                if (user.wallet < 100) {
+                    document.getElementById('withdrawBtn').disabled = true;
+                }
+            }
+        }
+
+        async function loadWithdrawalHistory() {
+            const { data: withdrawals } = await supabase
+                .from('withdrawals')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false })
+                .limit(10);
+            
+            const historyContainer = document.getElementById('withdrawalHistory');
+            
+            if (!withdrawals || withdrawals.length === 0) {
+                historyContainer.innerHTML = '<div class="history-item"><div>No withdrawal history</div></div>';
+                return;
+            }
+            
+            historyContainer.innerHTML = withdrawals.map(withdrawal => `
+                <div class="history-item">
+                    <div>
+                        <div>₹${withdrawal.amount}</div>
+                        <div style="font-size:12px;opacity:0.7;">${new Date(withdrawal.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div style="color:${withdrawal.status === 'approved' ? '#10B981' : withdrawal.status === 'pending' ? '#F59E0B' : '#EF4444'};">
+                        ${withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('withdrawBtn').addEventListener('click', async function() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const upiId = document.getElementById('upiId').value;
+            
+            if (!amount || amount < 100 || amount > 250) {
+                alert('Please enter amount between ₹100 and ₹250');
+                return;
+            }
+            
+            if (!upiId) {
+                alert('Please enter your UPI ID');
+                return;
+            }
+            
+            try {
+                const { data: user } = await supabase
+                    .from('users')
+                    .select('wallet')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (user.wallet < amount) {
+                    alert('Insufficient balance');
+                    return;
+                }
+                
+                // Create withdrawal request
+                const { error } = await supabase
+                    .from('withdrawals')
+                    .insert([{
+                        user_id: currentUser.id,
+                        amount: amount,
+                        status: 'pending',
+                        upi_id: upiId,
+                        created_at: new Date().toISOString()
+                    }]);
+                
+                if (error) throw error;
+                
+                alert('Withdrawal request submitted! It will be processed within 24 hours.');
+                document.getElementById('withdrawAmount').value = '';
+                document.getElementById('upiId').value = '';
+                loadWithdrawalHistory();
+                
+            } catch (error) {
+                console.error('Error processing withdrawal:', error);
+                alert('Error processing withdrawal. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
