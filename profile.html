@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EARO - Profile</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+        :root{--primary-gradient:linear-gradient(135deg,#8B5CF6,#7C3AED);--light-bg:linear-gradient(135deg,#F6F3FF,#EDE7F6);--card-light:rgba(255,255,255,0.7);--text-light:#333;--shadow-light:0 8px 25px rgba(0,0,0,0.15);}
+        body{background:var(--light-bg);color:var(--text-light);min-height:100vh;padding-bottom:80px;}
+        .container{max-width:100%;padding:15px;}
+        .header{display:flex;justify-content:space-between;align-items:center;padding:15px 0;margin-bottom:20px;}
+        .back-btn{background:none;border:none;font-size:20px;cursor:pointer;}
+        .logo{font-size:24px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .profile-card{background:var(--card-light);backdrop-filter:blur(15px);border-radius:20px;padding:25px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);margin-bottom:20px;text-align:center;}
+        .user-avatar{width:80px;height:80px;border-radius:50%;background:var(--primary-gradient);display:flex;align-items:center;justify-content:center;color:white;font-size:32px;font-weight:600;margin:0 auto 15px;}
+        .user-name{font-size:20px;font-weight:600;margin-bottom:5px;}
+        .user-email{font-size:14px;opacity:0.7;margin-bottom:15px;}
+        .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin:20px 0;}
+        .stat-card{background:rgba(255,255,255,0.5);padding:15px;border-radius:15px;text-align:center;}
+        .stat-value{font-size:18px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .stat-label{font-size:12px;opacity:0.7;}
+        .referral-card{background:var(--card-light);backdrop-filter:blur(15px);border-radius:20px;padding:20px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);margin-bottom:20px;}
+        .referral-code{background:rgba(139,92,246,0.1);padding:15px;border-radius:15px;text-align:center;font-size:18px;font-weight:600;letter-spacing:2px;margin:15px 0;}
+        .copy-btn{background:var(--primary-gradient);color:white;border:none;padding:10px 20px;border-radius:10px;font-size:14px;cursor:pointer;width:100%;}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card-light);backdrop-filter:blur(15px);border-top:1px solid rgba(255,255,255,0.3);display:flex;justify-content:space-around;padding:10px 0;z-index:100;}
+        .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--text-light);font-size:12px;}
+        .nav-item.active{color:#8B5CF6;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
+            <div class="logo">EARO</div>
+            <div style="width:24px;"></div>
+        </div>
+        
+        <div class="profile-card">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div class="user-name" id="userName">User</div>
+            <div class="user-email" id="userEmail">user@example.com</div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalEarned">₹0</div>
+                    <div class="stat-label">Total Earned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="currentPlan">Free</div>
+                    <div class="stat-label">Current Plan</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="referral-card">
+            <div style="font-weight:600;margin-bottom:10px;">Your Referral Code</div>
+            <div style="font-size:14px;opacity:0.7;margin-bottom:15px;">Share this code to earn ₹25 per referral</div>
+            <div class="referral-code" id="referralCode">LOADING</div>
+            <button class="copy-btn" onclick="copyReferralCode()">Copy Referral Code</button>
+        </div>
+        
+        <div style="text-align:center;margin-top:20px;">
+            <button style="background:none;border:1px solid #8B5CF6;color:#8B5CF6;padding:10px 20px;border-radius:10px;cursor:pointer;" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item"><div style="font-size:20px;">🏠</div><div>Home</div></a>
+        <a href="tasks.html" class="nav-item"><div style="font-size:20px;">📋</div><div>Tasks</div></a>
+        <a href="subscriptions.html" class="nav-item"><div style="font-size:20px;">💰</div><div>Earn</div></a>
+        <a href="withdraw.html" class="nav-item"><div style="font-size:20px;">💸</div><div>Withdraw</div></a>
+        <a href="profile.html" class="nav-item active"><div style="font-size:20px;">👤</div><div>Profile</div></a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://yxzztomtgaqmboquoszg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4enp0b210Z2FxbWJvcXVvc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzU4OTQsImV4cCI6MjA3ODAxMTg5NH0.NKaBpeTUE3zgcyCOl_mbF1NJHGry5I8vBDzkb1RS1DY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) window.location.href = 'index.html';
+            currentUser = session.user;
+            loadUserProfile();
+        });
+
+        async function loadUserProfile() {
+            const { data: user } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (user) {
+                document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+                document.getElementById('userName').textContent = user.email.split('@')[0];
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('totalEarned').textContent = '₹' + user.total_earned;
+                document.getElementById('referralCode').textContent = user.referral_code;
+                
+                const planName = getPlanName(user.plan_id);
+                document.getElementById('currentPlan').textContent = planName;
+            }
+        }
+
+        function getPlanName(planId) {
+            const plans = {
+                1: 'Free',
+                2: 'Silver',
+                3: 'Gold', 
+                4: 'Diamond'
+            };
+            return plans[planId] || 'Free';
+        }
+
+        function copyReferralCode() {
+            const code = document.getElementById('referralCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Referral code copied to clipboard!');
+            });
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
