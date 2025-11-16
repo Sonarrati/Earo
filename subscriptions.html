@@ -3,144 +3,548 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EARO - Subscriptions</title>
+    <title>Subscriptions - EARO</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-        :root{--primary-gradient:linear-gradient(135deg,#8B5CF6,#7C3AED);--light-bg:linear-gradient(135deg,#F6F3FF,#EDE7F6);--card-light:rgba(255,255,255,0.7);--text-light:#333;--shadow-light:0 8px 25px rgba(0,0,0,0.15);}
-        body{background:var(--light-bg);color:var(--text-light);min-height:100vh;padding-bottom:80px;}
-        .container{max-width:100%;padding:15px;}
-        .header{display:flex;justify-content:space-between;align-items:center;padding:15px 0;margin-bottom:20px;}
-        .back-btn{background:none;border:none;font-size:20px;cursor:pointer;}
-        .logo{font-size:24px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;}
-        .plan-card{background:var(--card-light);backdrop-filter:blur(15px);border-radius:20px;padding:25px;box-shadow:var(--shadow-light);border:1px solid rgba(255,255,255,0.3);margin-bottom:20px;text-align:center;}
-        .plan-name{font-size:20px;font-weight:600;margin-bottom:10px;}
-        .plan-price{font-size:28px;font-weight:700;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:10px;}
-        .plan-features{font-size:14px;margin-bottom:20px;opacity:0.8;}
-        .buy-btn{background:var(--primary-gradient);color:white;border:none;padding:12px 30px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;width:100%;}
-        .current-plan{background:#10B981;color:white;padding:5px 10px;border-radius:10px;font-size:12px;margin-top:10px;}
-        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card-light);backdrop-filter:blur(15px);border-top:1px solid rgba(255,255,255,0.3);display:flex;justify-content:space-around;padding:10px 0;z-index:100;}
-        .nav-item{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--text-light);font-size:12px;}
-        .nav-item.active{color:#8B5CF6;}
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1A1A1A;
+            --accent-orange: #FF7A29;
+            --accent-orange-dark: #FF5400;
+            --text-white: #FFFFFF;
+            --text-gray: #A6A6A6;
+            --card-radius: 25px;
+            --card-padding: 20px;
+            --nav-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary));
+            color: var(--text-white);
+            min-height: 100vh;
+            padding-bottom: calc(var(--nav-height) + 20px);
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-top: 10px;
+        }
+
+        .back-btn {
+            color: var(--accent-orange);
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .current-plan {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-dark));
+            border-radius: var(--card-radius);
+            padding: var(--card-padding);
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(255, 122, 41, 0.3);
+        }
+
+        .plan-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .plan-days {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-value {
+            height: 100%;
+            background: white;
+            border-radius: 4px;
+            width: 65%;
+        }
+
+        .plans-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .plan-card {
+            background: rgba(26, 26, 26, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: var(--card-radius);
+            padding: var(--card-padding);
+            border: 1px solid rgba(255, 122, 41, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan-card.featured {
+            border: 2px solid var(--accent-orange);
+            transform: scale(1.02);
+        }
+
+        .plan-card.featured::before {
+            content: 'POPULAR';
+            position: absolute;
+            top: 15px;
+            right: -30px;
+            background: var(--accent-orange);
+            color: white;
+            padding: 5px 30px;
+            font-size: 12px;
+            font-weight: bold;
+            transform: rotate(45deg);
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .plan-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .plan-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-orange);
+        }
+
+        .plan-features {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .plan-features li {
+            padding: 8px 0;
+            color: var(--text-gray);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features li i {
+            color: var(--accent-orange);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--accent-orange), var(--accent-orange-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 122, 41, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--accent-orange);
+            color: var(--accent-orange);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 460px;
+            height: var(--nav-height);
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 122, 41, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-gray);
+            font-size: 12px;
+            transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .nav-item.active {
+            color: var(--accent-orange);
+            background: rgba(255, 122, 41, 0.1);
+            box-shadow: 0 0 15px rgba(255, 122, 41, 0.2);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .comparison-table {
+            margin-top: 30px;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(255, 122, 41, 0.1);
+            border-radius: 12px 12px 0 0;
+            font-weight: bold;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+            border-radius: 0 0 12px 12px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
-            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
-            <div class="logo">EARO</div>
-            <div style="width:24px;"></div>
+            <a href="dashboard.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="page-title">Subscription Plans</div>
+            <div style="width: 24px;"></div>
         </div>
-        
-        <div id="plansContainer">
-            <div class="plan-card">
-                <div class="plan-name">Free Plan</div>
-                <div class="plan-price">₹0</div>
-                <div class="plan-features">Basic earning features<br>Standard multipliers</div>
-                <div class="current-plan" id="freePlanBadge">Current Plan</div>
+
+        <!-- Current Plan -->
+        <div class="current-plan">
+            <div class="plan-badge">ACTIVE PLAN</div>
+            <div class="plan-name" id="currentPlanName">Premium Plan</div>
+            <div class="plan-days" id="planDays">15 days remaining</div>
+            <div class="progress-bar">
+                <div class="progress-value" id="planProgress"></div>
             </div>
-            
+            <div style="font-size: 14px;">Earned: ₹815.50 / ₹1248.75</div>
+        </div>
+
+        <!-- Available Plans -->
+        <div class="plans-grid">
             <div class="plan-card">
-                <div class="plan-name">Silver Plan</div>
-                <div class="plan-price">₹49</div>
-                <div class="plan-features">2× Display Multiplier<br>30 days duration</div>
-                <button class="buy-btn" onclick="buyPlan('Silver', 49, 2)">Buy Now</button>
+                <div class="plan-header">
+                    <div class="plan-title">Starter</div>
+                    <div class="plan-price">₹49</div>
+                </div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> 30 Days Duration</li>
+                    <li><i class="fas fa-check"></i> Real Cap: ₹61.25</li>
+                    <li><i class="fas fa-check"></i> Daily Target: ₹2.04</li>
+                    <li><i class="fas fa-check"></i> 2 Scratch Cards/Day</li>
+                </ul>
+                <button class="btn btn-outline" onclick="selectPlan('starter')">Select Plan</button>
             </div>
-            
-            <div class="plan-card">
-                <div class="plan-name">Gold Plan</div>
-                <div class="plan-price">₹99</div>
-                <div class="plan-features">2× Display Multiplier<br>30 days duration</div>
-                <button class="buy-btn" onclick="buyPlan('Gold', 99, 2)">Buy Now</button>
+
+            <div class="plan-card featured">
+                <div class="plan-header">
+                    <div class="plan-title">Standard</div>
+                    <div class="plan-price">₹299</div>
+                </div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> 60 Days Duration</li>
+                    <li><i class="fas fa-check"></i> Real Cap: ₹373.75</li>
+                    <li><i class="fas fa-check"></i> Daily Target: ₹6.23</li>
+                    <li><i class="fas fa-check"></i> 4 Scratch Cards/Day</li>
+                    <li><i class="fas fa-check"></i> Priority Support</li>
+                </ul>
+                <button class="btn btn-primary" onclick="selectPlan('standard')">Select Plan</button>
             </div>
-            
+
             <div class="plan-card">
-                <div class="plan-name">Diamond Plan</div>
-                <div class="plan-price">₹499</div>
-                <div class="plan-features">2× Display Multiplier<br>60 days duration</div>
-                <button class="buy-btn" onclick="buyPlan('Diamond', 499, 2)">Buy Now</button>
+                <div class="plan-header">
+                    <div class="plan-title">Premium</div>
+                    <div class="plan-price">₹999</div>
+                </div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> 90 Days Duration</li>
+                    <li><i class="fas fa-check"></i> Real Cap: ₹1248.75</li>
+                    <li><i class="fas fa-check"></i> Daily Target: ₹13.88</li>
+                    <li><i class="fas fa-check"></i> 6 Scratch Cards/Day</li>
+                    <li><i class="fas fa-check"></i> Priority Support</li>
+                    <li><i class="fas fa-check"></i> Higher Task Rewards</li>
+                </ul>
+                <button class="btn btn-outline" onclick="selectPlan('premium')">Select Plan</button>
             </div>
         </div>
-    </div>
-    
-    <div class="bottom-nav">
-        <a href="dashboard.html" class="nav-item"><div style="font-size:20px;">🏠</div><div>Home</div></a>
-        <a href="tasks.html" class="nav-item"><div style="font-size:20px;">📋</div><div>Tasks</div></a>
-        <a href="subscriptions.html" class="nav-item active"><div style="font-size:20px;">💰</div><div>Earn</div></a>
-        <a href="withdraw.html" class="nav-item"><div style="font-size:20px;">💸</div><div>Withdraw</div></a>
-        <a href="profile.html" class="nav-item"><div style="font-size:20px;">👤</div><div>Profile</div></a>
+
+        <!-- Plan Comparison -->
+        <div class="comparison-table">
+            <h3 style="margin-bottom: 15px;">Plan Comparison</h3>
+            <div class="table-header">
+                <div>Feature</div>
+                <div>Starter</div>
+                <div>Standard</div>
+                <div>Premium</div>
+            </div>
+            <div class="table-row">
+                <div>Daily Check-in</div>
+                <div>₹0.20-0.60</div>
+                <div>₹0.80-1.50</div>
+                <div>₹1-2</div>
+            </div>
+            <div class="table-row">
+                <div>Scratch Cards</div>
+                <div>₹0.60-1.00</div>
+                <div>₹2-3.5</div>
+                <div>₹3-5</div>
+            </div>
+            <div class="table-row">
+                <div>Treasure Box</div>
+                <div>₹0.40-0.70</div>
+                <div>₹1.5-2.8</div>
+                <div>₹2-3.8</div>
+            </div>
+            <div class="table-row">
+                <div>Withdrawal Fee</div>
+                <div>10%</div>
+                <div>8%</div>
+                <div>5%</div>
+            </div>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <div>Home</div>
+        </a>
+        <a href="earn.html" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-bolt"></i></div>
+            <div>Earn</div>
+        </a>
+        <a href="rewards.html" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-gift"></i></div>
+            <div>Rewards</div>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <div class="nav-icon"><i class="fas fa-user"></i></div>
+            <div>Profile</div>
+        </a>
+        <a href="menu.html" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-bars"></i></div>
+            <div>Menu</div>
+        </a>
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script>
+        // Supabase configuration
         const supabaseUrl = 'https://yxzztomtgaqmboquoszg.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4enp0b210Z2FxbWJvcXVvc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzU4OTQsImV4cCI6MjA3ODAxMTg5NH0.NKaBpeTUE3zgcyCOl_mbF1NJHGry5I8vBDzkb1RS1DY';
+        
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        let currentUser = null;
 
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) window.location.href = 'index.html';
-            currentUser = session.user;
-            loadUserPlan();
-        });
-
-        async function loadUserPlan() {
-            const { data: user } = await supabase
-                .from('users')
-                .select('plan_id')
-                .eq('id', currentUser.id)
-                .single();
+        // Initialize subscriptions page
+        async function initializeSubscriptions() {
+            const { data: { session }, error } = await supabase.auth.getSession();
             
-            if (user && user.plan_id !== 1) {
-                document.getElementById('freePlanBadge').style.display = 'none';
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
             }
+
+            await loadCurrentSubscription(session.user.id);
         }
 
-        async function buyPlan(planName, price, multiplier) {
+        // Load current subscription
+        async function loadCurrentSubscription(userId) {
             try {
-                // For demo - in real implementation, integrate with Razorpay
-                const planId = getPlanId(planName);
-                const planEndDate = new Date();
-                planEndDate.setDate(planEndDate.getDate() + getPlanDuration(planName));
-                
-                const { error } = await supabase
-                    .from('users')
-                    .update({
-                        plan_id: planId,
-                        plan_start: new Date().toISOString(),
-                        plan_end: planEndDate.toISOString()
-                    })
-                    .eq('id', currentUser.id);
+                const { data: subscription, error } = await supabase
+                    .from('subscriptions')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .eq('status', 'active')
+                    .single();
 
-                if (error) throw error;
+                if (subscription) {
+                    document.getElementById('currentPlanName').textContent = subscription.plan_name;
+                    
+                    // Calculate days remaining
+                    const endDate = new Date(subscription.end_date);
+                    const today = new Date();
+                    const daysRemaining = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                    document.getElementById('planDays').textContent = `${daysRemaining} days remaining`;
 
-                alert(`Successfully subscribed to ${planName} Plan!`);
-                window.location.href = 'dashboard.html';
-                
+                    // Calculate progress
+                    const totalDays = subscription.duration_days;
+                    const daysUsed = totalDays - daysRemaining;
+                    const progress = (daysUsed / totalDays) * 100;
+                    document.getElementById('planProgress').style.width = `${progress}%`;
+                } else {
+                    document.getElementById('currentPlanName').textContent = 'No Active Plan';
+                    document.getElementById('planDays').textContent = 'Select a plan to start earning';
+                    document.querySelector('.current-plan').style.background = 'rgba(26, 26, 26, 0.7)';
+                }
             } catch (error) {
-                console.error('Error subscribing to plan:', error);
-                alert('Error processing subscription. Please try again.');
+                console.error('Error loading subscription:', error);
             }
         }
 
-        function getPlanId(planName) {
-            const plans = {
-                'Free': 1,
-                'Silver': 2,
-                'Gold': 3,
-                'Diamond': 4
+        // Select a plan
+        async function selectPlan(planType) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            let planData = {
+                name: '',
+                price: 0,
+                duration: 0,
+                real_cap: 0,
+                scratch_per_day: 0
             };
-            return plans[planName] || 1;
+
+            switch (planType) {
+                case 'starter':
+                    planData = {
+                        name: 'Starter Plan',
+                        price: 49,
+                        duration: 30,
+                        real_cap: 61.25,
+                        scratch_per_day: 2
+                    };
+                    break;
+                case 'standard':
+                    planData = {
+                        name: 'Standard Plan',
+                        price: 299,
+                        duration: 60,
+                        real_cap: 373.75,
+                        scratch_per_day: 4
+                    };
+                    break;
+                case 'premium':
+                    planData = {
+                        name: 'Premium Plan',
+                        price: 999,
+                        duration: 90,
+                        real_cap: 1248.75,
+                        scratch_per_day: 6
+                    };
+                    break;
+            }
+
+            // In a real app, you would integrate with a payment gateway here
+            const confirmPurchase = confirm(`Purchase ${planData.name} for ₹${planData.price}?`);
+
+            if (confirmPurchase) {
+                try {
+                    // Calculate end date
+                    const startDate = new Date();
+                    const endDate = new Date();
+                    endDate.setDate(startDate.getDate() + planData.duration);
+
+                    // Create subscription record
+                    const { error } = await supabase
+                        .from('subscriptions')
+                        .insert([
+                            {
+                                user_id: session.user.id,
+                                plan_name: planData.name,
+                                plan_price: planData.price,
+                                duration_days: planData.duration,
+                                real_cap: planData.real_cap,
+                                scratch_per_day: planData.scratch_per_day,
+                                start_date: startDate,
+                                end_date: endDate,
+                                status: 'active'
+                            }
+                        ]);
+
+                    if (error) throw error;
+
+                    alert(`Success! ${planData.name} activated. You can now start earning!`);
+                    location.reload();
+
+                } catch (error) {
+                    console.error('Error purchasing plan:', error);
+                    alert('Error purchasing plan. Please try again.');
+                }
+            }
         }
 
-        function getPlanDuration(planName) {
-            const durations = {
-                'Free': 9999,
-                'Silver': 30,
-                'Gold': 30,
-                'Diamond': 60
-            };
-            return durations[planName] || 30;
-        }
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', initializeSubscriptions);
     </script>
 </body>
 </html>
