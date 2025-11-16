@@ -3,325 +3,355 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EARO - Dashboard</title>
+    <title>Dashboard - EARO</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1A1A1A;
+            --accent-orange: #FF7A29;
+            --accent-orange-dark: #FF5400;
+            --text-white: #FFFFFF;
+            --text-gray: #A6A6A6;
+            --card-radius: 25px;
+            --card-padding: 20px;
+            --nav-height: 70px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
-        :root {
-            --primary-gradient: linear-gradient(135deg, #8B5CF6, #7C3AED);
-            --secondary-gradient: linear-gradient(135deg, #C4B5FD, #A78BFA);
-            --light-bg: linear-gradient(135deg, #F6F3FF, #EDE7F6);
-            --dark-bg: linear-gradient(135deg, #1A1A1A, #2E2A36);
-            --card-light: rgba(255, 255, 255, 0.7);
-            --card-dark: rgba(255, 255, 255, 0.1);
-            --text-light: #333;
-            --text-dark: #F5F5F5;
-            --shadow-light: 0 8px 25px rgba(0,0,0,0.15);
-            --shadow-dark: 0 8px 25px rgba(0,0,0,0.4);
-            --accent: #8B5CF6;
-        }
-        
+
         body {
-            background: var(--light-bg);
-            color: var(--text-light);
-            transition: all 0.5s ease;
+            background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary));
+            color: var(--text-white);
             min-height: 100vh;
-            padding-bottom: 80px;
+            padding-bottom: calc(var(--nav-height) + 20px);
         }
-        
-        body.dark-mode {
-            background: var(--dark-bg);
-            color: var(--text-dark);
-        }
-        
+
         .container {
-            max-width: 100%;
-            padding: 15px;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
         }
-        
+
+        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            padding-top: 10px;
         }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        
+
         .user-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
-        
-        .user-avatar {
+
+        .avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: var(--primary-gradient);
+            background: linear-gradient(45deg, var(--accent-orange), var(--accent-orange-dark));
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 600;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(255, 122, 41, 0.5);
         }
-        
-        .wallet-card {
-            background: var(--card-light);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: var(--shadow-light);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+
+        .notification {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .notification::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent-orange);
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            box-shadow: 0 0 8px var(--accent-orange);
+        }
+
+        /* Card Styles */
+        .card {
+            background: rgba(26, 26, 26, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: var(--card-radius);
+            padding: var(--card-padding);
             margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 122, 41, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .dark-mode .wallet-card {
-            background: var(--card-dark);
-            box-shadow: var(--shadow-dark);
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--accent-orange), transparent);
         }
-        
-        .wallet-header {
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 122, 41, 0.2);
+        }
+
+        .card-title {
+            font-size: 16px;
+            color: var(--text-gray);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Balance Card */
+        .balance-card {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
+            align-items: center;
         }
-        
-        .balance {
+
+        .balance-info {
+            flex: 1;
+        }
+
+        .balance-amount {
             font-size: 32px;
-            font-weight: 700;
-            background: var(--primary-gradient);
+            font-weight: bold;
+            margin: 10px 0;
+            background: linear-gradient(to right, var(--accent-orange), var(--accent-orange-dark));
             -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            -webkit-text-fill-color: transparent;
         }
-        
-        .withdraw-btn {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: 600;
+
+        .balance-label {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .circular-progress {
+            width: 100px;
+            height: 100px;
+            position: relative;
+        }
+
+        .progress-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent-orange) 70%, var(--bg-secondary) 0);
+            mask: radial-gradient(transparent 45px, #000 46px);
+            -webkit-mask: radial-gradient(transparent 45px, #000 46px);
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-white);
+        }
+
+        /* Daily Rewards */
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .reward-card {
+            text-align: center;
+            padding: 15px 10px;
+            border-radius: 15px;
+            background: rgba(40, 40, 40, 0.6);
+            transition: all 0.3s ease;
             cursor: pointer;
         }
-        
+
+        .reward-card.active {
+            background: rgba(255, 122, 41, 0.1);
+            box-shadow: 0 0 15px rgba(255, 122, 41, 0.3);
+        }
+
+        .reward-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--accent-orange);
+        }
+
+        .reward-title {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .reward-status {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        /* Activity Tiles */
         .activity-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            margin-bottom: 20px;
         }
-        
-        .activity-card {
-            background: var(--card-light);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: var(--shadow-light);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+
+        .activity-tile {
+            padding: 15px;
+            border-radius: 15px;
             text-align: center;
-            transition: transform 0.3s ease;
-            cursor: pointer;
+            background: rgba(40, 40, 40, 0.6);
+            transition: all 0.3s ease;
         }
-        
-        .dark-mode .activity-card {
-            background: var(--card-dark);
-            box-shadow: var(--shadow-dark);
+
+        .activity-tile:hover {
+            background: rgba(255, 122, 41, 0.1);
+            box-shadow: 0 0 10px rgba(255, 122, 41, 0.2);
         }
-        
-        .activity-card:hover {
-            transform: translateY(-5px);
-        }
-        
+
         .activity-icon {
-            font-size: 32px;
+            font-size: 20px;
             margin-bottom: 10px;
+            color: var(--accent-orange);
         }
-        
+
         .activity-title {
             font-size: 14px;
-            font-weight: 600;
             margin-bottom: 5px;
         }
-        
-        .activity-desc {
-            font-size: 12px;
-            opacity: 0.8;
+
+        .activity-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-orange);
         }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin: 20px 0 15px;
-        }
-        
-        .leaderboard-card {
-            background: var(--card-light);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: var(--shadow-light);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .dark-mode .leaderboard-card {
-            background: var(--card-dark);
-            box-shadow: var(--shadow-dark);
-        }
-        
-        .leaderboard-item {
+
+        /* Subscription Status */
+        .subscription-info {
             display: flex;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            justify-content: space-between;
+            margin-bottom: 15px;
         }
-        
-        .dark-mode .leaderboard-item {
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+
+        .subscription-name {
+            font-weight: bold;
         }
-        
-        .leaderboard-item:last-child {
-            border-bottom: none;
+
+        .subscription-percent {
+            color: var(--accent-orange);
         }
-        
-        .rank {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: var(--secondary-gradient);
-            color: white;
-            font-weight: 600;
-            margin-right: 15px;
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 122, 41, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
         }
-        
-        .user-info-leaderboard {
-            flex: 1;
+
+        .progress-value {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent-orange), var(--accent-orange-dark));
+            border-radius: 5px;
+            width: 65%;
+            box-shadow: 0 0 10px rgba(255, 122, 41, 0.5);
         }
-        
-        .user-name {
-            font-weight: 600;
+
+        .subscription-details {
+            margin-top: 15px;
+            font-size: 14px;
+            color: var(--text-gray);
         }
-        
-        .user-plan {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-        
-        .user-earnings {
-            font-weight: 600;
-            color: var(--accent);
-        }
-        
+
+        /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--card-light);
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 460px;
+            height: var(--nav-height);
+            background: rgba(26, 26, 26, 0.8);
             backdrop-filter: blur(15px);
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
             display: flex;
             justify-content: space-around;
-            padding: 10px 0;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
-            z-index: 100;
+            align-items: center;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 122, 41, 0.1);
+            z-index: 1000;
         }
-        
-        .dark-mode .bottom-nav {
-            background: var(--card-dark);
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
-        }
-        
+
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-decoration: none;
-            color: var(--text-light);
+            justify-content: center;
+            color: var(--text-gray);
             font-size: 12px;
             transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-decoration: none;
         }
-        
-        .dark-mode .nav-item {
-            color: var(--text-dark);
-        }
-        
+
         .nav-item.active {
-            color: var(--accent);
+            color: var(--accent-orange);
+            background: rgba(255, 122, 41, 0.1);
+            box-shadow: 0 0 15px rgba(255, 122, 41, 0.2);
         }
-        
+
         .nav-icon {
             font-size: 20px;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
-        
-        .mode-toggle {
-            width: 50px;
-            height: 26px;
-            background: var(--primary-gradient);
-            border-radius: 13px;
-            position: relative;
-            cursor: pointer;
+
+        /* Animations */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 122, 41, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 122, 41, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 122, 41, 0); }
         }
-        
-        .toggle-circle {
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-        
-        .dark-mode .toggle-circle {
-            left: 27px;
-        }
-        
-        @keyframes confetti {
-            0% { transform: translateY(0) rotate(0); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-        }
-        
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background: var(--accent);
-            top: -10px;
-            opacity: 0;
-            z-index: 1000;
-        }
-        
-        .logout-btn {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-        
-        .dark-mode .logout-btn {
-            color: var(--text-dark);
+
+        .pulse {
+            animation: pulse 2s infinite;
         }
     </style>
 </head>
@@ -329,248 +359,296 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <div class="logo">EARO</div>
             <div class="user-info">
-                <div class="mode-toggle" id="modeToggle">
-                    <div class="toggle-circle"></div>
+                <div class="avatar" id="userAvatar">AK</div>
+                <div>
+                    <div id="userName">Hi, User</div>
+                    <div style="font-size: 12px; color: var(--text-gray);" id="userPlan">Premium Member</div>
                 </div>
-                <div class="user-avatar" id="userAvatar">U</div>
-                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+            <div class="notification">
+                <i class="fas fa-bell"></i>
             </div>
         </div>
-        
-        <!-- Wallet Card -->
-        <div class="wallet-card">
-            <div class="wallet-header">
-                <div>Your Balance</div>
-                <div>₹ <span class="balance" id="balance">0.00</span></div>
-            </div>
-            <div>Withdrawable: ₹<span id="withdrawable">0.00</span></div>
-            <button class="withdraw-btn" onclick="window.location.href='withdraw.html'">Withdraw</button>
-        </div>
-        
-        <!-- Activity Grid -->
-        <div class="activity-grid">
-            <div class="activity-card" onclick="window.location.href='checkin.html'">
-                <div class="activity-icon">✅</div>
-                <div class="activity-title">Daily Check-in</div>
-                <div class="activity-desc">₹2-₹10 reward</div>
-            </div>
-            <div class="activity-card" onclick="window.location.href='scratch.html'">
-                <div class="activity-icon">🎯</div>
-                <div class="activity-title">Scratch Card</div>
-                <div class="activity-desc">₹3-₹10 reward</div>
-            </div>
-            <div class="activity-card" onclick="window.location.href='treasure.html'">
-                <div class="activity-icon">🪙</div>
-                <div class="activity-title">Treasure Box</div>
-                <div class="activity-desc">₹5-₹15 reward</div>
-            </div>
-            <div class="activity-card" onclick="window.location.href='tasks.html'">
-                <div class="activity-icon">📋</div>
-                <div class="activity-title">Tasks</div>
-                <div class="activity-desc">Complete & earn</div>
-            </div>
-        </div>
-        
-        <!-- Leaderboard -->
-        <div class="section-title">Top Earners Today</div>
-        <div class="leaderboard-card" id="leaderboard">
-            <div class="leaderboard-item">
-                <div class="rank">1</div>
-                <div class="user-info-leaderboard">
-                    <div class="user-name">Loading...</div>
-                    <div class="user-plan">Free Plan</div>
+
+        <!-- Balance Card -->
+        <div class="card">
+            <div class="balance-card">
+                <div class="balance-info">
+                    <div class="balance-label">Total Balance</div>
+                    <div class="balance-amount" id="totalBalance">₹1,245.75</div>
+                    <div class="balance-label">Today's Earning: <span style="color: var(--accent-orange);" id="todayEarning">₹42.50</span></div>
                 </div>
-                <div class="user-earnings">₹0.00</div>
+                <div class="circular-progress">
+                    <div class="progress-bg">
+                        <div class="progress-fill"></div>
+                        <div class="progress-text">70%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Rewards -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-gift"></i>
+                Daily Rewards
+            </div>
+            <div class="rewards-grid">
+                <div class="reward-card active pulse" onclick="claimReward('checkin')">
+                    <div class="reward-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="reward-title">Check-in</div>
+                    <div class="reward-status">Available</div>
+                </div>
+                <div class="reward-card" onclick="claimReward('scratch')">
+                    <div class="reward-icon"><i class="fas fa-scroll"></i></div>
+                    <div class="reward-title">Scratch Cards</div>
+                    <div class="reward-status">3 Available</div>
+                </div>
+                <div class="reward-card" onclick="claimReward('treasure')">
+                    <div class="reward-icon"><i class="fas fa-chess-queen"></i></div>
+                    <div class="reward-title">Treasure Box</div>
+                    <div class="reward-status">Ready</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Tiles -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-chart-line"></i>
+                Today's Activity
+            </div>
+            <div class="activity-grid">
+                <div class="activity-tile">
+                    <div class="activity-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="activity-title">Check-in</div>
+                    <div class="activity-amount">₹4.20</div>
+                </div>
+                <div class="activity-tile">
+                    <div class="activity-icon"><i class="fas fa-scroll"></i></div>
+                    <div class="activity-title">Scratch Card</div>
+                    <div class="activity-amount">₹12.50</div>
+                </div>
+                <div class="activity-tile">
+                    <div class="activity-icon"><i class="fas fa-gem"></i></div>
+                    <div class="activity-title">Treasure</div>
+                    <div class="activity-amount">₹8.75</div>
+                </div>
+                <div class="activity-tile">
+                    <div class="activity-icon"><i class="fas fa-tasks"></i></div>
+                    <div class="activity-title">Tasks</div>
+                    <div class="activity-amount">₹16.85</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-chart-bar"></i>
+                Weekly Performance
+            </div>
+            <div style="height: 200px;">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Subscription Status -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-crown"></i>
+                Subscription Status
+            </div>
+            <div class="subscription-info">
+                <div class="subscription-name" id="subscriptionName">Premium Plan</div>
+                <div class="subscription-percent" id="subscriptionPercent">65% Complete</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-value" id="progressValue"></div>
+            </div>
+            <div class="subscription-details" id="subscriptionDetails">
+                Remaining Earning Possible: ₹432.25 / ₹1248.75
             </div>
         </div>
     </div>
-    
+
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <a href="dashboard.html" class="nav-item active">
-            <div class="nav-icon">🏠</div>
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
             <div>Home</div>
         </a>
-        <a href="tasks.html" class="nav-item">
-            <div class="nav-icon">📋</div>
-            <div>Tasks</div>
-        </a>
-        <a href="subscriptions.html" class="nav-item">
-            <div class="nav-icon">💰</div>
+        <a href="earn.html" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-bolt"></i></div>
             <div>Earn</div>
         </a>
-        <a href="withdraw.html" class="nav-item">
-            <div class="nav-icon">💸</div>
-            <div>Withdraw</div>
+        <a href="rewards.html" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-gift"></i></div>
+            <div>Rewards</div>
         </a>
         <a href="profile.html" class="nav-item">
-            <div class="nav-icon">👤</div>
+            <div class="nav-icon"><i class="fas fa-user"></i></div>
             <div>Profile</div>
+        </a>
+        <a href="menu.html" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-bars"></i></div>
+            <div>Menu</div>
         </a>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script>
         // Supabase configuration
         const supabaseUrl = 'https://yxzztomtgaqmboquoszg.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4enp0b210Z2FxbWJvcXVvc3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzU4OTQsImV4cCI6MjA3ODAxMTg5NH0.NKaBpeTUE3zgcyCOl_mbF1NJHGry5I8vBDzkb1RS1DY';
+        
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        let currentUser = null;
-
-        // Check authentication
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        // Check authentication and load user data
+        async function initializeDashboard() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
             if (!session) {
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
                 return;
             }
-            currentUser = session.user;
-            loadUserData();
-            loadLeaderboard();
-        });
 
-        // Load user data
-        async function loadUserData() {
-            const { data: user, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
+            // Load user data
+            await loadUserData(session.user);
+            
+            // Initialize chart
+            initializeChart();
+            
+            // Update progress bar
+            setTimeout(() => {
+                document.getElementById('progressValue').style.transition = 'width 1.5s ease-in-out';
+                document.getElementById('progressValue').style.width = '65%';
+            }, 500);
+        }
 
-            if (error) {
+        // Load user data from database
+        async function loadUserData(user) {
+            try {
+                // Get user profile
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) {
+                    document.getElementById('userName').textContent = `Hi, ${profile.full_name || user.email}`;
+                    document.getElementById('userAvatar').textContent = profile.full_name ? profile.full_name.substring(0, 2).toUpperCase() : 'US';
+                    
+                    // Load user balance and subscription
+                    await loadUserBalance(user.id);
+                    await loadUserSubscription(user.id);
+                }
+            } catch (error) {
                 console.error('Error loading user data:', error);
-                return;
-            }
-
-            // Update UI
-            document.getElementById('balance').textContent = user.wallet.toFixed(2);
-            document.getElementById('withdrawable').textContent = (user.wallet >= 100 ? user.wallet : 0).toFixed(2);
-            document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
-            
-            // Set dark mode if enabled
-            if (user.dark_mode) {
-                document.body.classList.add('dark-mode');
             }
         }
 
-        // Load leaderboard
-        async function loadLeaderboard() {
-            // Get today's start and end
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-
-            const { data: transactions, error } = await supabase
-                .from('transactions')
-                .select('user_id, amount')
-                .gte('created_at', today.toISOString())
-                .lt('created_at', tomorrow.toISOString())
-                .eq('type', 'credit');
-
-            if (error) {
-                console.error('Error loading leaderboard:', error);
-                return;
-            }
-
-            // Calculate earnings per user
-            const userEarnings = {};
-            transactions.forEach(transaction => {
-                if (!userEarnings[transaction.user_id]) {
-                    userEarnings[transaction.user_id] = 0;
-                }
-                userEarnings[transaction.user_id] += transaction.amount;
-            });
-
-            // Get user details for top earners
-            const topUserIds = Object.keys(userEarnings)
-                .sort((a, b) => userEarnings[b] - userEarnings[a])
-                .slice(0, 5);
-
-            if (topUserIds.length === 0) {
-                document.getElementById('leaderboard').innerHTML = '<div class="leaderboard-item">No earnings today</div>';
-                return;
-            }
-
-            const { data: users, error: usersError } = await supabase
-                .from('users')
-                .select('id, email, plan_id')
-                .in('id', topUserIds);
-
-            if (usersError) {
-                console.error('Error loading user details:', usersError);
-                return;
-            }
-
-            // Display leaderboard
-            const leaderboardHTML = users.map((user, index) => `
-                <div class="leaderboard-item ${user.id === currentUser.id ? 'current-user' : ''}">
-                    <div class="rank">${index + 1}</div>
-                    <div class="user-info-leaderboard">
-                        <div class="user-name">${user.id === currentUser.id ? 'You' : user.email.split('@')[0]}</div>
-                        <div class="user-plan">${getPlanName(user.plan_id)}</div>
-                    </div>
-                    <div class="user-earnings">₹${userEarnings[user.id].toFixed(2)}</div>
-                </div>
-            `).join('');
-
-            document.getElementById('leaderboard').innerHTML = leaderboardHTML;
+        // Load user balance
+        async function loadUserBalance(userId) {
+            // In a real app, you would fetch this from your database
+            document.getElementById('totalBalance').textContent = '₹1,245.75';
+            document.getElementById('todayEarning').textContent = '₹42.50';
         }
 
-        function getPlanName(planId) {
-            const plans = {
-                1: 'Free Plan',
-                2: 'Silver Plan',
-                3: 'Gold Plan',
-                4: 'Diamond Plan'
-            };
-            return plans[planId] || 'Free Plan';
+        // Load user subscription
+        async function loadUserSubscription(userId) {
+            // In a real app, you would fetch this from your database
+            document.getElementById('subscriptionName').textContent = 'Premium Plan';
+            document.getElementById('subscriptionPercent').textContent = '65% Complete';
+            document.getElementById('subscriptionDetails').textContent = 'Remaining Earning Possible: ₹432.25 / ₹1248.75';
         }
 
-        // Dark mode toggle
-        document.getElementById('modeToggle').addEventListener('click', async function() {
-            document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            
-            // Update user preference in database
-            if (currentUser) {
-                const { error } = await supabase
-                    .from('users')
-                    .update({ dark_mode: isDarkMode })
-                    .eq('id', currentUser.id);
-
-                if (error) {
-                    console.error('Error updating dark mode:', error);
-                }
-            }
-        });
-
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', async function() {
-            await supabase.auth.signOut();
-            window.location.href = 'index.html';
-        });
-
-        // Real-time wallet updates
-        supabase
-            .channel('wallet_updates')
-            .on('postgres_changes', 
-                { 
-                    event: 'UPDATE', 
-                    schema: 'public', 
-                    table: 'users',
-                    filter: `id=eq.${currentUser?.id}`
-                }, 
-                (payload) => {
-                    if (payload.new.wallet !== payload.old.wallet) {
-                        document.getElementById('balance').textContent = payload.new.wallet.toFixed(2);
-                        document.getElementById('withdrawable').textContent = (payload.new.wallet >= 100 ? payload.new.wallet : 0).toFixed(2);
+        // Initialize performance chart
+        function initializeChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Earnings (₹)',
+                        data: [28, 35, 42, 38, 45, 52, 48],
+                        borderColor: '#FF7A29',
+                        backgroundColor: 'rgba(255, 122, 41, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#A6A6A6'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#A6A6A6'
+                            }
+                        }
                     }
                 }
-            )
-            .subscribe();
+            });
+        }
+
+        // Claim reward function
+        async function claimReward(type) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            let rewardAmount = 0;
+            let message = '';
+
+            switch (type) {
+                case 'checkin':
+                    rewardAmount = (Math.random() * 2 + 1).toFixed(2);
+                    message = `Daily check-in reward: ₹${rewardAmount}`;
+                    break;
+                case 'scratch':
+                    rewardAmount = (Math.random() * 5 + 3).toFixed(2);
+                    message = `Scratch card reward: ₹${rewardAmount}`;
+                    break;
+                case 'treasure':
+                    rewardAmount = (Math.random() * 10 + 5).toFixed(2);
+                    message = `Treasure box reward: ₹${rewardAmount}`;
+                    break;
+            }
+
+            // Update balance in database (pseudo-code)
+            // await updateUserBalance(session.user.id, parseFloat(rewardAmount));
+
+            alert(message);
+            
+            // Update UI
+            const currentBalance = parseFloat(document.getElementById('totalBalance').textContent.replace('₹', ''));
+            const newBalance = currentBalance + parseFloat(rewardAmount);
+            document.getElementById('totalBalance').textContent = `₹${newBalance.toFixed(2)}`;
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
     </script>
 </body>
 </html>
